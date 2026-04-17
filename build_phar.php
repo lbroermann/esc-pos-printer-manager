@@ -1,32 +1,53 @@
 <?php
-// Archivos y directorios que quieres incluir en el archivo Phar
-/* $files = [
-    'index.php',
-    'print_example.php',
-    'print.php',
-    'printers.php',
-    'vendor',
-]; */
 
-// Nombre del archivo Phar
-$pharFile = 'miaplicacion.phar';
+function addPathToPhar(Phar $phar, string $sourcePath, string $localPath): void
+{
+    if (is_file($sourcePath)) {
+        $phar->addFile($sourcePath, $localPath);
+        return;
+    }
 
-// Crear el archivo Phar
-$phar = new Phar($pharFile);
+    if (!is_dir($sourcePath)) {
+        throw new RuntimeException("Path not found: $sourcePath");
+    }
 
-$phar->buildFromDirectory(__DIR__ . '/');
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($sourcePath, FilesystemIterator::SKIP_DOTS)
+    );
 
-/* 
-// Agregar archivos al Phar
-foreach ($files as $file) {
-    if (is_dir($file)) {
-        $phar->buildFromDirectory($file);
-    } else {
-        $phar->addFile($file);
+    foreach ($iterator as $file) {
+        if (!$file->isFile()) {
+            continue;
+        }
+
+        $fullPath = $file->getPathname();
+        $relativePath = $localPath . '/' . ltrim(substr($fullPath, strlen($sourcePath)), DIRECTORY_SEPARATOR);
+        $phar->addFile($fullPath, $relativePath);
     }
 }
- */
-// Punto de entrada de la aplicación en el Phar
-$phar->setStub($phar->createDefaultStub('index.php'));
 
-echo "Archivo Phar creado: $pharFile\n";
+$pharFile = __DIR__ . '/miaplicacion.phar';
+$runtimeIncludeList = [
+    'index.php',
+    'print.php',
+    'printers.php',
+    'unifont.hex',
+    'vendor',
+];
+
+if (file_exists($pharFile)) {
+    unlink($pharFile);
+}
+
+$phar = new Phar($pharFile, 0, basename($pharFile));
+$phar->startBuffering();
+
+foreach ($runtimeIncludeList as $path) {
+    addPathToPhar($phar, __DIR__ . '/' . $path, $path);
+}
+
+$phar->setStub("#!/usr/bin/env php\n" . $phar->createDefaultStub('index.php'));
+$phar->stopBuffering();
+chmod($pharFile, 0755);
+
+echo "Archivo Phar creado (whitelist): $pharFile\n";

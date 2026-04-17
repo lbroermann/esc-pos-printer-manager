@@ -13,6 +13,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 // Get the requested URI
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestMethod = $_SERVER['REQUEST_METHOD'];
+$enablePrintTest = filter_var(getenv('ENABLE_PRINT_TEST') ?: 'false', FILTER_VALIDATE_BOOLEAN);
 
 
 // Route requests to the appropriate PHP file
@@ -22,7 +23,7 @@ if ($requestMethod === "GET" && $requestUri === '/printers') {
 } elseif ($requestMethod === "POST" && $requestUri === '/print') {
     // Route to print.php
     require 'print.php';
-}elseif ($requestMethod === "POST" && $requestUri === '/print-test') {
+} elseif ($enablePrintTest && $requestMethod === "POST" && $requestUri === '/print-test') {
     // Route to print.php
     require 'print_example.php';
 } else {

@@ -10,6 +10,77 @@ A Windows executable that runs a local php server with the ability to manage the
 
 # [DOCUMENTATION](https://escpos-printermanager.netlify.app/)
 
+## Build on Windows (PHAR)
+
+This project can be packaged into `miaplicacion.phar` on Windows.
+
+### Prerequisites
+
+1. Windows 10/11
+2. PHP 8.x available in `PATH`
+3. Composer available in `PATH`
+4. `phar` extension enabled in PHP
+
+### Manual build steps
+
+1. Open **PowerShell** in the repository root.
+2. Install dependencies:
+
+```powershell
+composer install --no-dev --optimize-autoloader
+```
+
+3. Disable the test endpoint for the build process:
+
+```powershell
+$env:ENABLE_PRINT_TEST = "false"
+```
+
+4. Build the PHAR artifact:
+
+```powershell
+php -d phar.readonly=0 .\build_phar.php
+```
+
+5. Confirm that `miaplicacion.phar` was created in the project root.
+
+### One-command build script
+
+You can use the included script:
+
+```powershell
+.\build.ps1
+```
+
+Optional flags:
+
+```powershell
+.\build.ps1 -SkipComposerInstall
+.\build.ps1 -SkipDefenderScan
+```
+
+The script performs:
+
+1. Toolchain checks (`php`, `composer`)
+2. Dependency installation (unless skipped)
+3. PHAR build with `phar.readonly=0`
+4. Optional Microsoft Defender custom scan of the artifact
+
+### Optional Microsoft Defender check
+
+If you want to run Defender manually:
+
+```powershell
+& "$Env:ProgramFiles\Windows Defender\MpCmdRun.exe" -Scan -ScanType 3 -File .\miaplicacion.phar
+```
+
+### Troubleshooting
+
+If you see `creating archive ... disabled by the php.ini setting phar.readonly`, either:
+
+1. Use the command shown above with `-d phar.readonly=0`, or
+2. Set `phar.readonly = Off` in your active `php.ini`.
+
 ## MIT license
 Copyright (c) 2024 yayidg22
 
