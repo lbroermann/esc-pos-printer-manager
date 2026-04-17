@@ -81,6 +81,31 @@ If you see `creating archive ... disabled by the php.ini setting phar.readonly`,
 1. Use the command shown above with `-d phar.readonly=0`, or
 2. Set `phar.readonly = Off` in your active `php.ini`.
 
+## Create Release Package (.rar)
+
+The historical release format contains:
+
+1. `data.phar`
+2. `escpos-printer.cmd`
+3. `data/` (embedded Windows PHP runtime, including `php.exe` and `php.ini`)
+
+To reproduce that layout, use:
+
+```powershell
+.\package-release.ps1 -PhpRuntimeDir "C:\path\to\php-runtime\data" -Version "v1.0.0"
+```
+
+Output:
+
+1. `dist\staging\esc-pos-printer-manager\...` (folder structure)
+2. `dist\esc-pos-printer-manager.v1.0.0.rar` (archive)
+
+Notes:
+
+1. `-PhpRuntimeDir` must point to a directory that contains `php.exe`.
+2. The script builds `miaplicacion.phar`, renames it to `data.phar`, copies `escpos-printer.cmd`, and packages everything as `.rar`.
+3. If `rar`/`Rar.exe` is not installed, install WinRAR or add `rar` to `PATH`.
+
 ## MIT license
 Copyright (c) 2024 yayidg22
 
